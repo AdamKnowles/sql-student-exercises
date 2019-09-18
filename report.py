@@ -41,6 +41,15 @@ class Exercises():
     def __repr__(self):
         return f'{self.name} is a {self.language} exercise'
 
+# class All_Students_And_Exercises():
+    
+#     def __init__(self, name, toyname):
+#         self.name = name
+#         self.toyname = toyname
+        
+
+    
+
 
 
 
@@ -139,9 +148,72 @@ class StudentExerciseReports():
 
             for exercises in all_exercises:
                 print(exercises)
+    
+    def all_students_and_exercises(self):
+        exercises = dict()
+
+        """Retrieve all cohorts"""
+
+        with sqlite3.connect(self.db_path) as conn:
+            # conn.row_factory = lambda cursor, row: All_Students_And_Exercises(row[1], row[2])
+           
+            db_cursor = conn.cursor()
+
+            db_cursor.execute("""
+            select
+	        e.Id ExerciseId,
+	        e.Name,
+	        s.Id,
+	        s.First,
+	        s.Last
+            from Exercise e
+            join Assignment se on se.ExerciseId = e.Id
+            join Student s on s.Id = se.StudentId """)
+
+            all_students_and_exercises = db_cursor.fetchall()
+
+            for row in all_students_and_exercises:
+                exercise_id = row[0]
+                exercise_name = row[1]
+                student_id = row[2]
+                student_name = f'{row[3]} {row[4]}'
+
+                if exercise_name not in exercises:
+                    exercises[exercise_name] = [student_name]
+                else:
+                    exercises[exercise_name].append(student_name)
+                    
+
+            for exercise_name, students in  exercises.items():
+                print(exercise_name)
+                for student in students:
+                    print(f'\t* {student}')
+            
+            for row in all_students_and_exercises:
+                exercise_id = row[0]
+                exercise_name = row[1]
+                student_id = row[2]
+                student_name = f'{row[3]} {row[4]}'
+
+                if student_name not in exercises:
+                    exercises[student_name] = [exercise_name]
+                else:
+                    exercises[student_name].append(exercise_name)
+                    
+
+            for student_name, exercises in  exercises.items():
+                print(student_name)
+                for exercise in exercises:
+                    print(f'\t* {exercise}')
+
+            
 
 reports = StudentExerciseReports()
-reports.all_students()
 reports.all_cohorts()
-reports.all_exercises()
 reports.all_instructors()
+reports.all_students()
+reports.all_exercises()
+reports.all_students_and_exercises()
+        
+    
+    
